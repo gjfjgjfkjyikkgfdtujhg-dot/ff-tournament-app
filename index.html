@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Fire Tournament</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background-color: #1a1a2e; color: #fff; padding: 15px; }
+        .container { max-width: 500px; margin: 0 auto; }
+        h1, h2 { text-align: center; color: #ff9900; margin-bottom: 15px; }
+        .card { background: #16213e; border-radius: 10px; padding: 15px; margin-bottom: 15px; border: 1px solid #0f3460; }
+        input, button { width: 100%; padding: 10px; margin: 5px 0 10px; border-radius: 5px; border: none; font-size: 14px; }
+        input { background: #0f3460; color: #fff; }
+        button { background: #ff9900; color: #000; font-weight: bold; cursor: pointer; }
+        button:hover { background: #e68a00; }
+        .match-card { background: #0f3460; border-left: 5px solid #ff9900; padding: 10px; margin-top: 10px; border-radius: 5px; }
+        .match-title { font-size: 16px; font-weight: bold; color: #00fff5; }
+        .match-details { font-size: 14px; color: #e94560; margin-top: 5px; }
+        .tab-btn { width: 48%; display: inline-block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔥 Free Fire Tournament 🔥</h1>
+    
+    <!-- নেভিগেশন বাটন -->
+    <div style="text-align: center; margin-bottom: 15px;">
+        <button class="tab-btn" onclick="showTab('user')">খেলোয়াড় পেজ</button>
+        <button class="tab-btn" onclick="showTab('admin')">অ্যাডমিন প্যানেল</button>
+    </div>
+
+    <!-- ইউজার পেজ (টুর্নামেন্ট লিস্ট) -->
+    <div id="userPage">
+        <h2>চলমান টুর্নামেন্ট</h2>
+        <div id="matchContainer">
+            <p style="text-align:center;">কোনো ম্যাচ যুক্ত করা হয়নি।</p>
+        </div>
+    </div>
+
+    <!-- অ্যাডমিন প্যানেল -->
+    <div id="adminPage" style="display: none;">
+        <div class="card">
+            <h2>অ্যাডমিন লগইন</h2>
+            <input type="password" id="adminPass" placeholder="অ্যাডমিন পাসওয়ার্ড লিখুন">
+            <button onclick="loginAdmin()">লগইন করুন</button>
+        </div>
+
+        <div id="adminControls" class="card" style="display: none;">
+            <h2>নতুন ম্যাচ যোগ করুন</h2>
+            <input type="text" id="matchTitle" placeholder="ম্যাচের নাম (যেমন: Solo Clash Squad)">
+            <input type="text" id="roomDetails" placeholder="রুম আইডি ও পাসওয়ার্ড (যেমন: ID: 200095747 Pass: 123)">
+            <button onclick="addMatch()">পাবলিশ করুন</button>
+            <button onclick="clearMatches()" style="background: #e94560; color: white;">সব ম্যাচ মুছে ফেলুন</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ডিফল্ট অ্যাডমিন পাসওয়ার্ড
+    const ADMIN_PASSWORD = "1234";
+
+    // পেজ পরিবর্তন লজিক
+    function showTab(tabName) {
+        document.getElementById('userPage').style.display = tabName === 'user' ? 'block' : 'none';
+        document.getElementById('adminPage').style.display = tabName === 'admin' ? 'block' : 'none';
+    }
+
+    // অ্যাডমিন লগইন লজিক
+    function loginAdmin() {
+        const pass = document.getElementById('adminPass').value;
+        if (pass === ADMIN_PASSWORD) {
+            document.getElementById('adminControls').style.display = 'block';
+            alert('লগইন সফল হয়েছে!');
+        } else {
+            alert('ভুল পাসওয়ার্ড!');
+        }
+    }
+
+    // ম্যাচ যোগ করার লজিক
+    function addMatch() {
+        const title = document.getElementById('matchTitle').value;
+        const details = document.getElementById('roomDetails').value;
+
+        if (!title || !details) {
+            alert('সবগুলো ঘর পূরণ করুন!');
+            return;
+        }
+
+        let matches = JSON.parse(localStorage.getItem('ff_matches')) || [];
+        matches.push({ title: title, details: details });
+        localStorage.setItem('ff_matches', JSON.stringify(matches));
+
+        document.getElementById('matchTitle').value = '';
+        document.getElementById('roomDetails').value = '';
+
+        alert('ম্যাচ সফলভাবে যোগ করা হয়েছে!');
+        loadMatches();
+        showTab('user');
+    }
+
+    // ইউজারদের জন্য ম্যাচ লোড করার লজিক
+    function loadMatches() {
+        let matches = JSON.parse(localStorage.getItem('ff_matches')) || [];
+        const container = document.getElementById('matchContainer');
+
+        if (matches.length === 0) {
+            container.innerHTML = '<p style="text-align:center;">কোনো ম্যাচ যুক্ত করা হয়নি।</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        matches.forEach((match, index) => {
+            container.innerHTML += `
+                <div class="match-card">
+                    <div class="match-title">🎮 ${match.title}</div>
+                    <div class="match-details">🔑 ${match.details}</div>
+                </div>
+            `;
+        });
+    }
+
+    // সব ম্যাচ ক্লিয়ার করার লজিক
+    function clearMatches() {
+        if (confirm('আপনি কি সব ম্যাচ মুছে ফেলতে চান?')) {
+            localStorage.removeItem('ff_matches');
+            loadMatches();
+            alert('সব ম্যাচ মুছে ফেলা হয়েছে।');
+        }
+    }
+
+    // অ্যাপ চালু হলে ম্যাচগুলো প্রদর্শন করবে
+    loadMatches();
+</script>
+
+</body>
+</html>
